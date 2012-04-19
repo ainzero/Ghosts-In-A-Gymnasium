@@ -4,6 +4,8 @@ from pygame.locals import *
 from Ghostman import Ghostman
 from Player import Player
 from Mouse import Mouse
+from Chair import Chair
+
 import random
 
 SCREEN_WIDTH     = 1200
@@ -60,26 +62,26 @@ class Game(object):
 		# Chairs are also broken for the moment
 		#Setting up barriers (Chairs)!
 		
-		#for y in [(490,400)]:
-		#	temp = Chair(y)
-		#	self.sprites.add(temp);
+		for y in [(490,400),(590,400),(490,500),(590,500), (690,500), (390,400),(290,400),(490,300), (390,300), (590,600)]:
+			temp = Chair(y)
+			self.sprites.add(temp);
 
 	
 		self.player = Player("Anthony",(800,400))
 		self.sprites.add(self.player)
 		
-		self.ghostman_a = Ghostman("Melchoir",(400,300))
-		self.sprites.add(self.ghostman_a)
+		#self.ghostman_a = Ghostman("Melchoir",(400,300))
+		#self.sprites.add(self.ghostman_a)
 		
 		#self.ghostman_b = Ghostman("Casper",(400,500))
 		#self.sprites.add(self.ghostman_b)
 		
-		self.mouse = Mouse("Mickey", (500,400))
-		self.sprites.add(self.mouse)
-		self.mouse = Mouse("Mic", (475,400))
-		self.sprites.add(self.mouse)
-		self.mouse = Mouse("Mikey", (490,400))
-		self.sprites.add(self.mouse)
+		#self.mouse = Mouse("Mickey", (500,400))
+		#self.sprites.add(self.mouse)
+		#self.mouse = Mouse("Mic", (475,400))
+		#self.sprites.add(self.mouse)
+		#self.mouse = Mouse("Mikey", (490,400))
+		#self.sprites.add(self.mouse)
 		
 		
 		for sprite in self.sprites:
@@ -109,19 +111,19 @@ class Game(object):
 
 				# Some broken code for collision detection, a work in progress
 
-				#if sprite.name == 'Melchoir' or sprite.name == 'Mickey':
+				
 
-				#self.sprites.remove(sprite)  # Don't want collisions with self
+				self.sprites.remove(sprite)  # Don't want collisions with self
 				
 				# checking collisions
-				#hit = pygame.sprite.spritecollideany(sprite, self.sprites);
-				#collision_list = []
-				#collision_list.append(hit)
+				hit = pygame.sprite.spritecollideany(sprite, self.sprites);
+				collision_list = []
+				collision_list.append(hit)
 
-				#if hit:
-				#	for s in collision_list:
-				#		if s.__class__.__name__ == 'Chair':
-				#			s.collision_detect(sprite.rect)
+				if hit:
+					for s in collision_list:
+						if s.__class__.__name__ == 'Chair':
+							s.collision_detect(sprite,.0167)
 
 				self.updatedAnimation = sprite.update(.0167,self.time_passed,self.player)  # 0.0166666 1/60
 				self.sprites.add(sprite)

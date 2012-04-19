@@ -44,6 +44,7 @@ class Player(pygame.sprite.Sprite):
 
 		# Sets player position
 		self.rect.move_ip(xy[0],xy[1])
+		self.rect.inflate_ip(-15,-35)
 		self.position = array([self.rect.left,self.rect.top])
 		
 		self.hit_top_bound = False
@@ -66,24 +67,24 @@ class Player(pygame.sprite.Sprite):
 		
 		if len(keypress) == 1:  # recall Y is positive downward
 			if 'w' in keypress and not self.hit_left_bound and not self.hit_right_bound and not self.hit_top_bound:
-				self.rect.topleft = (self.rect.left,self.rect.top - 1)
+				self.rect.topleft = (self.rect.left,self.rect.top - 2)
 			if 'a' in keypress and not self.hit_left_bound:
-				self.rect.topleft = (self.rect.left - 1,self.rect.top)
+				self.rect.topleft = (self.rect.left - 2,self.rect.top)
 			if 's' in keypress and not self.hit_left_bound and not self.hit_right_bound and not self.hit_bottom_bound:
-				self.rect.topleft = (self.rect.left,self.rect.top + 1)
+				self.rect.topleft = (self.rect.left,self.rect.top + 2)
 			if 'd' in keypress and not self.hit_right_bound:
-				self.rect.topleft = (self.rect.left + 1,self.rect.top)
+				self.rect.topleft = (self.rect.left + 2,self.rect.top)
 
 		if len(keypress) > 1:
 		       
 			if 'w' in keypress and 'd' in keypress and not self.hit_right_bound and not self.hit_top_bound:
-				self.rect.topleft = (self.rect.left + 1,self.rect.top - 1)
+				self.rect.topleft = (self.rect.left + 2,self.rect.top - 2)
 			if 'w' in keypress and 'a' in keypress and not self.hit_left_bound and not self.hit_top_bound:
-				self.rect.topleft = (self.rect.left - 1,self.rect.top - 1)
+				self.rect.topleft = (self.rect.left - 2,self.rect.top - 2)
 			if 's' in keypress and 'd' in keypress and not self.hit_right_bound and not self.hit_bottom_bound:
-				self.rect.topleft = (self.rect.left + 1,self.rect.top + 1)
+				self.rect.topleft = (self.rect.left + 2,self.rect.top + 2)
 			if 's' in keypress and 'a' in keypress and not self.hit_left_bound and not self.hit_bottom_bound:
-				self.rect.topleft = (self.rect.left - 1,self.rect.top + 1)
+				self.rect.topleft = (self.rect.left - 2,self.rect.top + 2)
 		
 		
 		self.position = array([self.rect.left,self.rect.top])
