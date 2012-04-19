@@ -112,8 +112,7 @@ class Ghostman(Player):
 
 	def seekTarget(self, target, time):
 
-
-                self.detect_court_collisions()
+		self.detect_court_collisions()
 
 		direction = target.position - self.position
 		#normalize direction

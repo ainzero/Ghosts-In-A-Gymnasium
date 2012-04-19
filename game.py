@@ -5,6 +5,9 @@ from Ghostman import Ghostman
 from Player import Player
 from Mouse import Mouse
 from Chair import Chair
+import time
+from PixelPerfect import *
+
 
 import random
 
@@ -55,20 +58,19 @@ class Game(object):
 		# Sprite setup and construction, boolean for if we did change
 		# a frame of animation
 		self.updated_animation = False
-		self.sprites = pygame.sprite.RenderUpdates() # Group containing all sprites
-		
-
-
+		self.chair_sprites = pygame.sprite.RenderUpdates() # Group containing all sprites
+		self.all_sprites = pygame.sprite.RenderUpdates()
 		# Chairs are also broken for the moment
 		#Setting up barriers (Chairs)!
 		
-		for y in [(490,400),(590,400),(490,500),(590,500), (690,500), (390,400),(290,400),(490,300), (390,300), (590,600)]:
+		for y in [(490,400)]: #'''(590,400),(490,500),(590,500), (690,500), (390,400),(290,400),(490,300), (390,300), (590,600)''']
 			temp = Chair(y)
-			self.sprites.add(temp);
-
+			self.chair_sprites.add(temp);
+			self.all_sprites.add(temp);
 	
 		self.player = Player("Anthony",(800,400))
-		self.sprites.add(self.player)
+		
+		self.all_sprites.add(self.player)
 		
 		#self.ghostman_a = Ghostman("Melchoir",(400,300))
 		#self.sprites.add(self.ghostman_a)
@@ -84,7 +86,9 @@ class Game(object):
 		#self.sprites.add(self.mouse)
 		
 		
-		for sprite in self.sprites:
+		
+		for sprite in self.all_sprites:
+
 			self.window.blit(sprite.image,sprite.rect.topleft)
 	
 	def run(self):
@@ -106,36 +110,43 @@ class Game(object):
 			# Update title bar with fps
 			pygame.display.set_caption("Ghosts in a Gymnasium - %f fps" % int(round(self.clock.get_fps())))
 			
+
+			
+			#print self.player.position
+
+			#print self.player.rect.topleft
+			#print self.player.rect.height
+			#print self.player.rect.width
 			# Update sprites
-			for sprite in self.sprites:
-
-				# Some broken code for collision detection, a work in progress
-
-				
-
-				self.sprites.remove(sprite)  # Don't want collisions with self
-				
+			
 				# checking collisions
-				hit = pygame.sprite.spritecollideany(sprite, self.sprites);
-				collision_list = []
-				collision_list.append(hit)
+				#for s in self.sprites:
 
-				if hit:
-					for s in collision_list:
-						if s.__class__.__name__ == 'Chair':
-							s.collision_detect(sprite,.0167)
+					#print spritecollide_pp(s,self.sprites,0)
+					
+					#hit_positive = pygame.sprite.collide_rect(sprite,s)
+					
 
+					#hit_positive = False	
+					#if hit_positive:
+					#	if s.__class__.__name__ == 'Chair':
+					#		s.collision_detect(sprite,.0167)
+				
+
+			li = spritecollide_pp(self.player,self.chair_sprites,0)
+			
+			for sprite in self.all_sprites:
 				self.updatedAnimation = sprite.update(.0167,self.time_passed,self.player)  # 0.0166666 1/60
-				self.sprites.add(sprite)
+				
 				
 			if self.updatedAnimation:
 				self.time_passed = 0
 					
 			# Render sprites section
 			# clear window
-			self.sprites.clear(self.window, self.background) 
+			self.all_sprites.clear(self.window, self.background) 
 			# Calculates sprites that need to be redrawn
-			redraw = self.sprites.draw(self.window)
+			redraw = self.all_sprites.draw(self.window)
 			# blit areas of screen that need to be redrawn
 			pygame.display.update(redraw)
 			
@@ -147,44 +158,45 @@ class Game(object):
 		
 		
 		for event in pygame.event.get():
+				
+				dx = 0
+				dy = 0
+
+
 				if event.type == QUIT:
 					return False
 				if event.type == KEYDOWN:
 					
 					keylist = pygame.key.get_pressed()
 					
+					
 					if keylist[K_w] is 1:
-						self.player_key_press.append('w')
+						dy = -1
 					if keylist[K_s] is 1:
-						self.player_key_press.append('s')
+						dy  = 1
 					if keylist[K_a] is 1: 
-						self.player_key_press.append('a')
+						dx  = -1
 					if keylist[K_d] is 1:
-						self.player_key_press.append('d')
+						dx = 1
 				
 					if event.key == K_ESCAPE:
 						return False
 				if event.type == KEYUP:
 					keylist = pygame.key.get_pressed()
 					
-					if keylist[K_w] is 1:
-						self.player_key_press.append('w')
-					if keylist[K_s] is 1:
-						self.player_key_press.append('s')
-					if keylist[K_a] is 1: 
-						self.player_key_press.append('a')
-					if keylist[K_d] is 1:
-						self.player_key_press.append('d')
-		
-		
-		#	if len(self.playerkeypress) > 0:
-		self.player.move(self.player_key_press)
-		self.player_key_press = []
+					if keylist[K_w] is 1 and dy == -1:
+						dy=0
+					if keylist[K_s] is 1 and dy == 1:
+						dy=0
+					if keylist[K_a] is 1 and dx == -1: 
+						dx=0
+					if keylist[K_d] is 1 and dx == 1:
+						dx=0
+
+				self.player.rect.left += dx
+				self.player.rect.top += dy
 		
 		return True
-		
-
-
 
 
 if __name__ == "__main__":
