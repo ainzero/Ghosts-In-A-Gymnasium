@@ -26,14 +26,13 @@ class Mouse(pygame.sprite.Sprite):
 			        directionlist = self.animationmotiondict[motion]
                                
 			        for index, direction in enumerate(directions):
-			                print index
-			                print direction
+			                
                                         if motion == 'stand':
                                                 maxsprite = 1
                                         else:
                                                 maxsprite = 4
 				        for x in range(0, maxsprite):
-				                print "data/sprites/mouse/" + motion + "/" +direction + "/" + "mouse" + str(x)+ ".png"
+                            
 					        directionlist[index].append(pygame.image.load("data/sprites/mouse/" + motion + "/" +direction + "/" + "mouse" + str(x)+ ".png").convert_alpha())
 				        self.animationmotiondict[motion] = directionlist
 				     
@@ -78,7 +77,7 @@ class Mouse(pygame.sprite.Sprite):
 		# How are we orientated?
 		self.orientation = (180 * math.atan2(self.velocity[1], -self.velocity[0])) / math.pi 
         # results in deg.
-		print self.orientation
+		
 		# pygame's y axis is positive in the 'downward' direction    
 		if self.orientation >= 45 and self.orientation <= 135:
 		    direction = 'down'
