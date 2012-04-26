@@ -29,6 +29,6 @@ class Scoreboard(pygame.sprite.Sprite):
             self.seconds = 0
         self.seconds = elapsed
         
-        self.image = self.font.render(" Scoreboard \n Points :%d    Time Survived:%d minutes %d seconds"%(self.mouse_dead_counter,self.minutes,self.seconds), True,(0,0,0))
+        self.image = self.font.render("Points: %d    Time Survived: %d minutes %d seconds"%(self.mouse_dead_counter,self.minutes,self.seconds), True,(0,0,0))
         self.rect = self.image.get_rect()
         self.rect.center = self.xy

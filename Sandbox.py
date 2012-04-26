@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from Chair import Chair
-from Graph import Graph
+#from Graph import Graph
 from PixelPerfect import *
 import math
 
@@ -76,7 +76,7 @@ class Sandbox():
                         self.chair_sprites.add(chair)
                         self.chair_counter += 1
                     if self.chair_counter == 6:
-                        self.graph = Graph(self.chair_sprites)
+                        #self.graph = Graph(self.chair_sprites)
                         return False
         return True
     

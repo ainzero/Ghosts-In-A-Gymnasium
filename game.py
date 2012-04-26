@@ -1,3 +1,4 @@
+#!/usr/bin/python
 #import libraries that we need
 import pygame,sys
 from pygame.locals import *
