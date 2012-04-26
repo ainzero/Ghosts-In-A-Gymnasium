@@ -21,6 +21,7 @@ class Player(pygame.sprite.Sprite):
         self.move_left = False
         self.move_right = False
 
+        self.attacking = False
 
         # Getting animation sprites
         self.animationmotiondict = {"walk":[[],[],[],[]],"stand":[[],[],[],[]], "attack":[[],[],[],[]]}
@@ -47,7 +48,7 @@ class Player(pygame.sprite.Sprite):
 
                 self.rect = self.animationmotiondict[motion][0][0].get_rect()
                 self.image = self.animationmotiondict[motion][0][0]
-                self.hitmask = pygame.surfarray.array_colorkey(self.image)
+                self.hitmask = pygame.mask.from_surface(self.image,127)
 
         except:
             print "An error has occured loading Sprites. Check there location,existence, or number."
@@ -95,6 +96,7 @@ class Player(pygame.sprite.Sprite):
             # Left Court
         if self.rect.left == math.ceil(self.bounding_x_left) or self.rect.left == math.floor(self.bounding_x_left):
                 self.hit_left_bound = True
+                self.rect.left = self.rect.left + (self.rect.width / 2)
                 print "Left Hit!"
         else:
                 self.hit_left_bound = False
@@ -104,6 +106,7 @@ class Player(pygame.sprite.Sprite):
                  # Right Court
         if self.rect.left == math.ceil(self.bounding_x_right) or self.rect.left == math.floor(self.bounding_x_right):
             self.hit_right_bound = True
+            self.rect.left = self.rect.left + - (self.rect.width / 2)
             print "Right Hit!"
         else:
             self.hit_right_bound = False
@@ -112,6 +115,7 @@ class Player(pygame.sprite.Sprite):
             
         if self.rect.top >= 671 and self.rect.top <= 673:
                 print "Hit Bottom"
+                self.rect.top = self.rect.top - (self.rect.height / 2)
                 self.hit_bottom_bound = True
         else:
                 self.hit_bottom_bound = False
@@ -119,65 +123,94 @@ class Player(pygame.sprite.Sprite):
             #Top Court
         if self.rect.top >= 210 and self.rect.top <= 212:
                 print "Hit Top"
+                self.rect.top = self.rect.top + (self.rect.height / 2)
                 self.hit_top_bound = True
         else:
                 self.hit_top_bound = False
        
     # assigned_movement is False
-    def animate(self,time,assigned_movement):
+    def animate(self,time):
     
         directions  = {'up':0,'down':1,'left':2,'right':3}
 
-        if assigned_movement:
-            movement = 'attack'
-            direction = 'right'
+  
+        if self.moving:
+            movement = 'walk'
         else:
-            # Are we moving?
-            if self.moving:
-                movement = 'walk'
-            else:
-                movement = 'stand'
+            movement = 'stand'
 
-        
-        
         # pygame's y axis is positive in the 'downward' direction    
-        
-        if not assigned_movement:
-            direction = ""
-            if self.move_down:
-                direction = 'down'
-            elif self.move_up:
-                direction = 'up'
-            elif self.move_right:
-                direction = 'right'
-            elif self.move_left:
-                direction = 'left'
-            else:
-                direction = 'right'
+        #print "In Animate"
+      
+        direction = ""
+        if self.move_down:
+            direction = 'down'
+        elif self.move_up:
+            direction = 'up'
+        elif self.move_right:
+            direction = 'right'
+        elif self.move_left:
+            direction = 'left'
+        else:
+            direction = 'right'
  
-        
         self.animationframenumber += 1
-        if self.animationframenumber >= 4 and (movement == 'walk' or movement == 'attack'):
+        if self.animationframenumber >= 4 and movement == 'walk':
             self.animationframenumber = 0
         if self.animationframenumber > 0 and movement == 'stand':
             self.animationframenumber = 0
-        print movement
-        print direction
-        print self.animationframenumber
+        
   
         if (time > 167): # number of milliseconds over 60fps before we flip a frame. This flips animation frames 10 times a second
             self.image = self.animationmotiondict[movement][directions[direction]][self.animationframenumber]
+            pos = self.rect.center
+            self.rect = self.image.get_rect()
+            self.rect.center = pos
+            self.hitmask = pygame.mask.from_surface(self.image,127)
             return True
             # must update depending on animation, temp disabling
        
         return False
     
+    def attack_animation(self,animation_time):
+        directions  = {'up':0,'down':1,'left':2,'right':3}
+        
+        movement = 'attack'
+        #print "In Attack!"
+        direction = ""
+        if self.move_down:
+            direction = 'down'
+        elif self.move_up:
+            direction = 'up'
+        elif self.move_right:
+            direction = 'right'
+        elif self.move_left:
+            direction = 'left'
+        else:
+            direction = 'right'
+            
+        self.animationframenumber += 1
+        if self.animationframenumber >= 4:
+            self.animationframenumber = 0
+    
+        if animation_time > 167:
+            self.image = self.animationmotiondict[movement][directions[direction]][self.animationframenumber]
+            pos = self.rect.center
+            self.rect = self.image.get_rect()
+            self.rect.center = pos
+            self.hitmask = pygame.mask.from_surface(self.image,127)
+            return True
+        return False
+        
+    
     def update(self,frametime,animationtime,target):
         
-        changedanimationframe = self.animate(animationtime,False)
+        if not self.attacking:
+            changedanimationframe = self.animate(animationtime)
+        else:
+            changedanimationframe = self.attack_animation(animationtime)
         
         if changedanimationframe:
             return True
         else:
             return False
-        

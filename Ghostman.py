@@ -14,7 +14,14 @@ class Ghostman(Player):
 
         # Everyone has a name ;)
         self.name = name
-
+        
+        
+        self.not_eating = True
+        self.eating_timer = 0
+        
+        self.colliding = False
+        
+        
         # Getting the number of animation sprites. 3 for a ghostman
         self.animationmotiondict = {"walk":[[], [], [], []], "stand":[[], [], [], []]}
         self.animationframenumber = 0
@@ -104,7 +111,8 @@ class Ghostman(Player):
 
         changedanimationframe = self.animate(animationtime)
         
-        self.seekTarget(target,frametime)
+        if self.not_eating and not self.colliding:
+            self.seekTarget(target,frametime)
 
         if changedanimationframe:
             return True
@@ -128,13 +136,18 @@ class Ghostman(Player):
 
         self.rect.topleft = (round(self.position[0]), round(self.position[1]))
 
-        
+        '''
         if sqrt(vdot(self.velocity,self.velocity)) > self.maxvelocitymagnitude:
             # normalize velocity vector
             self.velocity = array([velocity[0] / sqrt(vdot(self.velocity,self.velocity)),velocity[1] / sqrt(vdot(self.velocity,self.velocity))])
             #multiply by max acceleration
             self.velocity *= self.maxvelocity
+        '''
         
+    def eat_mouse(self,mouse, time):
+       
+            if not self.not_eating:
+                self.seekTarget(mouse,time)
 
-
-    
+                
+            

@@ -15,7 +15,7 @@ class Mouse(pygame.sprite.Sprite):
 
         # Everyone has a name ;)
         self.name = name
-
+        self.dead = False
         # Getting the number of animation sprites. 3 for a ghostman
         self.animationmotiondict = {"walk":[[], [], [], []], "stand":[[], [], [], []]}
         self.animationframenumber = 0
@@ -32,7 +32,7 @@ class Mouse(pygame.sprite.Sprite):
                     else:
                         maxsprite = 4
                     for x in range(0, maxsprite):
-                            print "data/sprites/mouse/" + motion + "/" +direction + "/" + "mouse" + str(x)+ ".png"
+                            
                             directionlist[index].append(pygame.image.load("data/sprites/mouse/" + motion + "/" +direction + "/" + "mouse" + str(x)+ ".png").convert_alpha())
                     self.animationmotiondict[motion] = directionlist
                  
@@ -59,7 +59,7 @@ class Mouse(pygame.sprite.Sprite):
         self.random_time_check = random.randint(10,60)
 
         # Movement Related Attributes
-        self.maxvelocity = array([32.0, 32.0])
+        self.maxvelocity = array([random.uniform(1,32),random.uniform(1,32)])
         self.maxvelocitymagnitude = sqrt(vdot(self.maxvelocity, self.maxvelocity))
         self.velocity = array([random.uniform(-12,12),random.uniform(-12,12)])
 
@@ -100,6 +100,10 @@ class Mouse(pygame.sprite.Sprite):
         # number of milliseconds over 60fps before we flip a frame. 
         #This flips animation frames 10 times a second
             self.image = self.animationmotiondict[movement][directions[direction]][self.animationframenumber]
+            pos = self.rect.center
+            self.rect = self.image.get_rect()
+            self.rect.center = pos
+            self.hitmask = pygame.mask.from_surface(self.image,127)
             return True
        
         
@@ -107,16 +111,21 @@ class Mouse(pygame.sprite.Sprite):
 
 
     def update(self, frametime, animationtime,target):
+        
+        if not self.dead:
+            self.waunder(frametime,target)
+            changedanimationframe = self.animate(animationtime)
 
-        self.waunder(frametime,target)
-        changedanimationframe = self.animate(animationtime)
+            if changedanimationframe:
+                return True
+            else:
+                return False
+        return False
 
-        if changedanimationframe:
-            return True
-        else:
-            return False
-
-
+    def kill(self):
+        
+        self.image = pygame.image.load("data/sprites/mouse/dead/mouse0.png").convert_alpha()
+        self.dead = True
 
     def detect_court_collisions(self):
                 # [233,211]      [907 211]
@@ -127,14 +136,15 @@ class Mouse(pygame.sprite.Sprite):
         # Linear interpolation of left side of court (Player bounding)
         # Thanks to Jeff Sullivan!!
         
-        chi = ((self.rect.top - 211) / 461.0)
-        self.bounding_x_left = (chi * -223.0) + 233.0
+        chi = ((self.rect.top - 309) / 436.0)
+        self.bounding_x_left = (chi * -222.0) + 237.0
         
         # Left Court
         if self.rect.left == math.ceil(self.bounding_x_left) or self.rect.left == math.floor(self.bounding_x_left):
             self.velocity = array([-self.velocity[0],self.velocity[1]])
 
-        self.bounding_x_right = (chi * 221) + 900 # 907         
+        chi = ((self.rect.top - 301) / 450.0)
+        self.bounding_x_right = (chi * 222) + 959 #961       
         
         # Right Court
         if self.rect.left == math.ceil(self.bounding_x_right) or self.rect.left == math.floor(self.bounding_x_right):
@@ -142,12 +152,12 @@ class Mouse(pygame.sprite.Sprite):
     
         
         # Bottom Court
-        if self.rect.top >= 670 and self.rect.top <= 672:
+        if self.rect.top >= 748 and self.rect.top <= 750:
             self.velocity = array([self.velocity[0],-self.velocity[1]])
      
         
         #Top Court
-        if self.rect.top >= 208 and self.rect.top <= 210:
+        if self.rect.top >= 300 and self.rect.top <= 302:
             self.velocity = array([-self.velocity[0],-self.velocity[1]])
                     
 
