@@ -28,9 +28,6 @@ next etc
 
 
 TODO:
-
-collision detection between sprites
-scoreboard
-start menu
+Major code cleanup
+better collision detection between sprites
 enhanced pathfinding for ghosts and mice, taking into account chairs
-actual gameplay described above....yup ;> 
