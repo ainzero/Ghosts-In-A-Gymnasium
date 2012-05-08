@@ -11,6 +11,8 @@ class Chair(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load("data/sprites/chair/6chairblock.png").convert_alpha()
         self.rect = self.image.get_rect()
+        self.collision_rect = self.image.get_rect()
+        
         self.position = array([float(self.rect.left), float(self.rect.top)])
         self.hitmask = pygame.mask.from_surface(self.image,127)
         self.blank = 0
@@ -18,7 +20,8 @@ class Chair(pygame.sprite.Sprite):
         
         # Sets chair position    
         #self.rect.move_ip(xy[0], xy[1])
-        self.rect.topleft = xy
+        self.rect.center = xy
+        self.collision_rect.center = xy
         
         #Court Collision Stuff
         self.hit_left_bound = False
@@ -67,7 +70,6 @@ class Chair(pygame.sprite.Sprite):
             self.hit_right_bound = False
             
             # Bottom Court
-        
         if self.rect.top >= 671 and self.rect.top <= 673:
             print "Hit Bottom"
             self.hit_bottom_bound = True

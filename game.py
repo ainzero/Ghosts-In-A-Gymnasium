@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2.7
 #import libraries that we need
 import pygame,sys
 from pygame.locals import *
@@ -9,8 +9,9 @@ from Chair import *
 from numpy import *
 from PixelPerfect import *
 from TitleScreen import *
-from Sandbox import Sandbox
+import Sandbox
 from Scoreboard import Scoreboard
+from DidNotFeed import DidNotFeed
 import random
 
 
@@ -66,6 +67,7 @@ class Game(object):
         
         # Let pygame know we want to listen to just three events
         pygame.event.set_allowed([QUIT,KEYDOWN,KEYUP,MOUSEBUTTONDOWN])
+        
         # list of key presses by player
         self.player_key_list = [] 
         
@@ -74,7 +76,7 @@ class Game(object):
 
         ####### Code for Sandbox stage  #######
         in_sandbox = True
-        self.sandbox_stage = Sandbox(self.window,self.clock)
+        self.sandbox_stage = Sandbox.Sandbox(self.window,self.clock)
         
         while in_sandbox:
             in_sandbox = self.sandbox_stage.play()
@@ -83,13 +85,29 @@ class Game(object):
         self.chair_list = self.sandbox_stage.chair_sprites
         
         # Group containing all sprites
-        self.sprites = pygame.sprite.RenderUpdates() 
+        self.sprites = pygame.sprite.OrderedUpdates() 
         
         # Group containing just mice
         self.mice_group = pygame.sprite.RenderUpdates() 
         
         # Group containing just Ghosts
         self.ghost_group = pygame.sprite.RenderUpdates()
+        
+        self.mouse1 = Mouse("Mickey", (815,305))
+        self.sprites.add(self.mouse1)
+        self.mice_group.add(self.mouse1)
+        self.mouse2 = Mouse("Mike", (400,305))
+        self.sprites.add(self.mouse2)
+        self.mice_group.add(self.mouse2)
+        
+    
+        self.ghostman_a = Ghostman("Melchoir",(75,650))
+        self.sprites.add(self.ghostman_a)
+        self.ghost_group.add(self.ghostman_a)
+        
+        self.ghostman_b = Ghostman("Casper",(250,305))
+        self.sprites.add(self.ghostman_b)
+        self.ghost_group.add(self.ghostman_b)
         
         for c in self.chair_list:
             self.sprites.add(c)
@@ -103,41 +121,26 @@ class Game(object):
         # a frame of animation
         self.updated_animation = False
         
-        
-        self.eating_time = 60
+        self.eating_time = 0
         
         # setup player,ghosts, and mice
-        self.player = Player("Anthony",(945,650))
+        self.player = Player("Anthony",(1000,625))
         self.sprites.add(self.player)
         
-        
-        self.ghostman_a = Ghostman("Melchoir",(75,650))
-        self.sprites.add(self.ghostman_a)
-        self.ghost_group.add(self.ghostman_a)
-        
-        self.ghostman_b = Ghostman("Casper",(250,305))
-        self.sprites.add(self.ghostman_b)
-        self.ghost_group.add(self.ghostman_b)
-        
-        
-        self.mouse1 = Mouse("Mickey", (815,305))
-        self.sprites.add(self.mouse1)
-        self.mice_group.add(self.mouse1)
-        self.mouse2 = Mouse("Mike", (400,305))
-        self.sprites.add(self.mouse2)
-        self.mice_group.add(self.mouse2)
-        
         self.mice_array = [self.mouse1,self.mouse2]
-        
-        
-        self.micea_dead = False
-        self.miceb_dead = False
-        
         
         self.score_board = Scoreboard((600,120))
         self.sprites.add(self.score_board)
         
+        self.did_not_feed = DidNotFeed((575,150), self.ghostman_a,self.ghostman_b)
+        self.sprites.add(self.did_not_feed)
+        
+        self.micea_dead = False
+        self.miceb_dead = False
+        
         for sprite in self.sprites:
+            if sprite.image == False:
+                continue
             self.window.blit(sprite.image,sprite.rect.topleft)
     
     def run(self):
@@ -155,34 +158,26 @@ class Game(object):
             
             # handles events (in this case if user closes game, stop running)
             running = self.handleEvents()
-        
-        
-            # Collision Detection
-            
+
             # player to chair
-            ptoc = pygame.sprite.spritecollide(self.player, self.chair_list, False, pygame.sprite.collide_mask)
-            if len(ptoc): # player collided with chair
-                for chair in ptoc:
+            ptoc = False
+            for chair in self.chair_list:
+                ptoc = collision_check(self.player,chair)
+                if ptoc:
                     self.mtv_collision_reaction(self.player,chair)
-            
-            # mouse to chair
-            for mouse in self.mice_group:
-                mtoc = pygame.sprite.spritecollide(mouse, self.chair_list, False, pygame.sprite.collide_mask)
-                if len(mtoc):
-                    for chair in mtoc:
-                        self.mouse_chair_collision(mouse,chair)
-        
             # player to mouse
             ptom = pygame.sprite.spritecollide(self.player, self.mice_group, False, pygame.sprite.collide_mask)
             
-            if self.player.attacking:
+            if self.player.attacking and self.player.aframes == 3:
                 for mouse in ptom:
                     mouse.kill()
             
             #ghosts eating mice
+            #mouse a
             if self.mice_array[0].dead:
                 distance = sqrt(pow((self.mice_array[0].position[0] - self.ghostman_a.position[0]),2) + pow((self.mice_array[0].position[1] - self.ghostman_a.position[1]),2))
-                if distance > 2 :
+             
+                if distance > 2 :  #ghost not at mouse yet
                     self.ghostman_a.not_eating = False
                     self.ghostman_a.eat_mouse(self.mice_array[0], .0167)
                 else:
@@ -193,8 +188,12 @@ class Game(object):
                         self.ghostman_a.maxvelocity += 12
                         self.ghostman_a.not_eating = True
                         self.ghostman_a.eating_timer = 0
-                        self.mice_array[0].rect.center = (815,305)
-                    
+                        x = random.randint(245,815)
+                        y = random.randint(305,730)
+                        self.mice_array[0].position = array([float(x),float(y)]) # place mouse at random location
+                        self.mice_array[0].rect.center = (x,y)
+                        self.did_not_feed.elapsed = 0
+            # mouse b
             if self.mice_array[1].dead:
                 distance = sqrt(pow((self.mice_array[1].position[0] - self.ghostman_b.position[0]),2) + pow((self.mice_array[1].position[1] - self.ghostman_b.position[1]),2))
                 if distance > 2:
@@ -202,35 +201,47 @@ class Game(object):
                     self.ghostman_b.eat_mouse(self.mice_array[1], .0167)
                 else:
                     self.ghostman_b.eating_timer += 1
+                
                     if self.ghostman_b.eating_timer > self.eating_time:
                         self.mice_array[1].dead = False
                         self.score_board.mouse_dead_counter += 1
                         self.ghostman_b.maxvelocity += 12
                         self.ghostman_b.eating_timer = 0
                         self.ghostman_b.not_eating = True
-                        self.mice_array[1].rect.center = (245,305)
-                
+                        x = random.randint(245,815)
+                        y = random.randint(305,730)
+                        self.mice_array[1].position = array([float(x),float(y)]) # place mouse at random location
+                        self.mice_array[1].rect.center = (x,y)
+                        self.did_not_feed.elapsed = 0
            
+            
+            self.did_not_feed.update_mouse_status(self.mice_array[0].dead, self.mice_array[1].dead)
+                          
             for sprite in self.sprites:
-                sprite.update(.0167,self.time_passed, self.player)  # 0.0166666 1/60
-                
+                end_of_time = sprite.update(.0167,self.time_passed, self.player)  # 0.0166666 1/60
+            
+            if end_of_time:
+                running = False
+            '' 
             #ghost to chair
             for ghost in self.ghost_group:
-                gtoc = pygame.sprite.spritecollide(ghost, self.chair_list, False, pygame.sprite.collide_mask)
-                if len(gtoc):
-                    for chair in gtoc:
-                        self.ghost_collision_reaction(ghost,chair)
+                for c in self.chair_list:
+                    gtoc = collision_check(ghost,c)
+                    if gtoc:
+                        self.mtv_collision_reaction(ghost,c)
                         ghost.collide = True    
             
             # player to ghost
-            gtop = pygame.sprite.spritecollide(self.player, self.ghost_group, False, pygame.sprite.collide_mask)
-            if len(gtop):
+            #gtop = pygame.sprite.spritecollide(self.player, self.ghost_group, False, pygame.sprite.collide_rect)
+            gtop = collision_check(self.player,c)
+            if gtop:
                 running = False 
-                
+            
                 
             if self.time_passed > 167:
                 self.time_passed = 0
-
+               
+            
             # clear window
             self.sprites.clear(self.window, self.background) 
             # Calculates sprites that need to be redrawn
@@ -238,9 +249,10 @@ class Game(object):
             # blit areas of screen that need to be redrawn
             pygame.display.update(redraw)
         
-        self.game_over()    
+        self.game_over()    # Display game over screen
     
-    
+   
+        
     def game_over(self):        
         
         self.window.blit(self.background, (0,0))
@@ -252,7 +264,7 @@ class Game(object):
         
         
         surface1 = self.message1.render("Game Over", True, (0,0,0))
-        surface3 = self.message3.render("Your Score: You survived for %d minutes, %d seconds with %d points"%(self.score_board.minutes,self.score_board.seconds,self.score_board.mouse_dead_counter), True,(0,0,0))
+        surface3 = self.message3.render("Your Score: You survived with %d points"%(self.score_board.mouse_dead_counter), True,(0,0,0))
         surface2 = self.message2.render("Press 'E' to play again, or escape to quit", True, (0,0,0))
         
         self.window.blit(surface1,(445,50))
@@ -272,63 +284,41 @@ class Game(object):
                     if event.key == K_ESCAPE:
                         pygame.quit()
             
-
-            
-    def player_chair_collision(self,chair):
-        pass
-        '''
-        if self.player_key_list[K_w] is 1 :
-            self.player.rect.top += 2
-        if self.player_key_list[K_s] is 1:
-            self.player.rect.top -= 2
-        if self.player_key_list[K_a] is 1: 
-            self.player.rect.left += 2
-        if self.player_key_list[K_d] is 1:
-            self.player.rect.left -= 2
-        '''
-        
+    # Special Thanks to one of many Pygame's tutorials
     def mtv_collision_reaction(self,moving_object, stationary_object):
         """Resolve the collision."""
-        
-        delta_x_left = stationary_object.rect.left - moving_object.rect.right # The minimum distance necessary to put the Unit flush with the left side of the Platform
-        delta_x_right = stationary_object.rect.right - moving_object.rect.left # The minimum distance necessary to put the Unit flush with the right side of the Platform
-        delta_y_up = stationary_object.rect.top - moving_object.rect.bottom # The minimum distance necessary to put the Unit flush with the top of the Platform
-        delta_y_down = stationary_object.rect.bottom - moving_object.rect.top # The minimum distance necessary to put the Unit flush with the bottom of the Platform
+        delta_x_left = stationary_object.rect.left - moving_object.collision_rect.right # The minimum distance necessary to put the Unit flush with the left side of the Platform
+        delta_x_right = stationary_object.rect.right - moving_object.collision_rect.left # The minimum distance necessary to put the Unit flush with the right side of the Platform
+        delta_y_up = stationary_object.rect.top - moving_object.collision_rect.bottom # The minimum distance necessary to put the Unit flush with the top of the Platform
+        delta_y_down = stationary_object.rect.bottom - moving_object.collision_rect.top # The minimum distance necessary to put the Unit flush with the bottom of the Platform
         smallest_delta = sorted([math.fabs(delta_x_left), math.fabs(delta_x_right), math.fabs(delta_y_up), math.fabs(delta_y_down)])[0] #Obtain the vector with the smallest magnitude.
         
         if (math.fabs(delta_x_left) == smallest_delta):
             moving_object.rect = moving_object.rect.move(delta_x_left, 0)
+            moving_object.collision_rect = moving_object.collision_rect.move(delta_x_left, 0)
             return True
         elif (math.fabs(delta_x_right) == smallest_delta):
             moving_object.rect = moving_object.rect.move(delta_x_right, 0)
+            moving_object.collision_rect = moving_object.collision_rect.move(delta_x_right, 0)
             return True
         elif (math.fabs(delta_y_up) == smallest_delta):
             moving_object.rect = moving_object.rect.move(0, delta_y_up)
+            moving_object.collision_rect = moving_object.collision_rect.move(0,delta_y_up)
             return True
         elif (math.fabs(delta_y_down) == smallest_delta):
             moving_object.rect = moving_object.rect.move(0, delta_y_down)
+            moving_object.collision_rect = moving_object.collision_rect.move(0,delta_y_down)
             return True
         return False
-    def ghost_collision_reaction(self,moving_object, stationary_object):
+    
+    '''
+    def ghost_collision_reaction(self,ghost, stationary_object):
         """Resolve the collision."""
-        
-        delta_x_left = stationary_object.rect.left - moving_object.rect.right # The minimum distance necessary to put the Unit flush with the left side of the Platform
-        delta_x_right = stationary_object.rect.right - moving_object.rect.left # The minimum distance necessary to put the Unit flush with the right side of the Platform
-        delta_y_up = stationary_object.rect.top - moving_object.rect.bottom # The minimum distance necessary to put the Unit flush with the top of the Platform
-        delta_y_down = stationary_object.rect.bottom - moving_object.rect.top # The minimum distance necessary to put the Unit flush with the bottom of the Platform
-        smallest_delta = sorted([math.fabs(delta_x_left), math.fabs(delta_x_right), math.fabs(delta_y_up), math.fabs(delta_y_down)])[0] #Obtain the vector with the smallest magnitude.
-        
-        #moving_object.maxvelocity =  -1 * moving_object.maxvelocity
-        if (math.fabs(delta_x_left) == smallest_delta):
-            moving_object.rect = moving_object.rect.move(delta_x_left , 0)
-        elif (math.fabs(delta_x_right) == smallest_delta):
-            moving_object.rect = moving_object.rect.move(delta_x_right , 0)
-        elif (math.fabs(delta_y_up) == smallest_delta):
-            moving_object.rect = moving_object.rect.move(0, delta_y_up)
-        elif (math.fabs(delta_y_down) == smallest_delta):
-            moving_object.rect = moving_object.rect.move(0, delta_y_down)
-            
      
+        for i in range(0,20):
+            ghost.position += ghost.velocity  * .0167
+     '''
+            
     def mouse_chair_collision(self,mouse, chair):
         
         # get direction to chair
@@ -388,9 +378,6 @@ class Game(object):
                         self.player.move_down = False
                         self.player.move_left = False
                         self.player.move_up = False
-                    if event.key == K_g:
-                        print self.player.position
-                        print self.player.bounding_x_right
                     self.player.moving = True
                 
                 elif event.type == pygame.KEYUP:
@@ -405,13 +392,45 @@ class Game(object):
                     if event.key == K_d and dx == 2:
                         dx=0
                 
+                self.player.collision_rect.left += dx
                 self.player.rect.left += dx
+                self.player.collision_rect.top += dy
                 self.player.rect.top += dy
+                
                 self.player.position = array([self.player.rect.left, self.player.rect.top])
 
         return True
 
-
+def collision_check(moving, stationary):
+        left_x_bound = stationary.rect.left
+        right_x_bound = stationary.rect.left + stationary.rect.width
+        top_y_bound = stationary.rect.top
+        bottom_y_bound = stationary.rect.top + stationary.rect.height
+        
+        left = False
+        right = False
+        top = False
+        bottom = False
+        if moving.collision_rect.left <= right_x_bound and moving.collision_rect.left >= left_x_bound:
+            left = True
+        if moving.collision_rect.right <= right_x_bound and moving.collision_rect.right >= left_x_bound:
+            right = True
+        if moving.collision_rect.top >= top_y_bound and moving.collision_rect.top <= bottom_y_bound:
+            top = True
+        if moving.collision_rect.bottom >= top_y_bound and moving.collision_rect.bottom <= bottom_y_bound:
+            bottom = True
+        print "Left: %s" % left
+        print "Top: %s" %top
+        print "Bottom: %s" %bottom
+        print "Right: %s" %right
+        
+        
+        if top and (left or right):
+            return True
+        elif bottom and (left or right):
+            return True
+        else:
+            return False
 
 
 if __name__ == "__main__":

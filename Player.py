@@ -26,6 +26,7 @@ class Player(pygame.sprite.Sprite):
         # Getting animation sprites
         self.animationmotiondict = {"walk":[[],[],[],[]],"stand":[[],[],[],[]], "attack":[[],[],[],[]]}
         self.animationframenumber = 0
+        
         try:
             directions = ["up","down","left","right"]
             motions = ["stand","walk","attack"]
@@ -53,17 +54,19 @@ class Player(pygame.sprite.Sprite):
         except:
             print "An error has occured loading Sprites. Check there location,existence, or number."
             raise Exception("Error!")
-
-        # Sets player position
-        self.rect.move_ip(xy[0],xy[1])
         
-        #self.rect.inflate_ip(-135,-35)
+        # Sets player position
+        self.rect.topleft = xy
+        
+        # collision rect
+        self.collision_rect = pygame.Rect(self.rect.left,self.rect.top + 75,63,10)
+      
+        
         self.position = array([self.rect.left,self.rect.top])
         self.blank = 0
 
         # for per pixel collision detection
        
-        
         self.hit_top_bound = False
         self.hit_bottom_bound = False
         
@@ -75,6 +78,9 @@ class Player(pygame.sprite.Sprite):
 
         # Keeps track of passed time since last update call
         self.elapsed = 0.0
+        
+        #number of attack frames drawn
+        self.aframes = 0
         
     def move(self,keypress):
         
@@ -90,40 +96,48 @@ class Player(pygame.sprite.Sprite):
         # Linear interpolation of left side of court (Player bounding)
         # Thanks to Jeff Sullivan!!
         
-        chi = ((self.rect.top - 211) / 461.0)
-        self.bounding_x_left = (chi * -223.0) + 233.0
+        chi = ((self.collision_rect.top - 211) / 461.0)
+        self.bounding_x_left = (chi * -223.0) + 270.0
             
             # Left Court
-        if self.rect.left == math.ceil(self.bounding_x_left) or self.rect.left == math.floor(self.bounding_x_left):
+        if self.collision_rect.left <= math.ceil(self.bounding_x_left): #or self.collision_rect.left == math.floor(self.bounding_x_left):
                 self.hit_left_bound = True
-                self.rect.left = self.rect.left + (self.rect.width / 2)
-                print "Left Hit!"
+                #self.collision_rect.left = self.collision_rect.left + (self.collision_rect.width / 2)
+                left_difference = (math.fabs(self.collision_rect.left - self.bounding_x_left) / 4)
+                self.rect = self.rect.move(left_difference, 0)
+                self.collision_rect = self.collision_rect.move(left_difference, 0)
+
         else:
                 self.hit_left_bound = False
             
                 self.bounding_x_right = (chi * 221) + 907         
             
                  # Right Court
-        if self.rect.left == math.ceil(self.bounding_x_right) or self.rect.left == math.floor(self.bounding_x_right):
-            self.hit_right_bound = True
-            self.rect.left = self.rect.left + - (self.rect.width / 2)
-            print "Right Hit!"
+        if self.collision_rect.left >= math.ceil(self.bounding_x_right): # or self.collision_rect.left == math.floor(self.bounding_x_right):
+            
+            right_difference = (math.fabs(self.collision_rect.right - self.bounding_x_right) / 4)
+            self.rect = self.rect.move(-right_difference, 0)
+            self.collision_rect = self.collision_rect.move(-right_difference, 0)
+            
+            #self.hit_right_bound = True
+            #self.collision_rect.left = self.collision_rect.left + - (self.collision_rect.width / 2)
+ 
         else:
             self.hit_right_bound = False
             
             # Bottom Court
             
-        if self.rect.top >= 671 and self.rect.top <= 673:
-                print "Hit Bottom"
-                self.rect.top = self.rect.top - (self.rect.height / 2)
+        if self.collision_rect.bottom >= 755:
+
+              #  self.collision_rect.top = self.collision_rect.top - (self.collision_rect.height / 2)
                 self.hit_bottom_bound = True
         else:
                 self.hit_bottom_bound = False
             
             #Top Court
-        if self.rect.top >= 210 and self.rect.top <= 212:
-                print "Hit Top"
-                self.rect.top = self.rect.top + (self.rect.height / 2)
+        if self.collision_rect.top <= 298:
+
+                #self.collision_rect.top = self.collision_rect.top + (self.collision_rect.height / 2)
                 self.hit_top_bound = True
         else:
                 self.hit_top_bound = False
@@ -154,6 +168,13 @@ class Player(pygame.sprite.Sprite):
         else:
             direction = 'right'
  
+        # set correct collision rectangle
+        if movement == 'walk':
+            self.collision_rect = pygame.Rect(self.rect.left,self.rect.top + 75,38,10)
+        else:
+            self.collision_rect = pygame.Rect(self.rect.left,self.rect.top + 75,63,10)
+ 
+ 
         self.animationframenumber += 1
         if self.animationframenumber >= 4 and movement == 'walk':
             self.animationframenumber = 0
@@ -176,7 +197,6 @@ class Player(pygame.sprite.Sprite):
         directions  = {'up':0,'down':1,'left':2,'right':3}
         
         movement = 'attack'
-        #print "In Attack!"
         direction = ""
         if self.move_down:
             direction = 'down'
@@ -194,6 +214,9 @@ class Player(pygame.sprite.Sprite):
             self.animationframenumber = 0
     
         if animation_time > 167:
+            self.aframes += 1
+            if self.aframes == 4:
+                self.aframes = 0
             self.image = self.animationmotiondict[movement][directions[direction]][self.animationframenumber]
             pos = self.rect.center
             self.rect = self.image.get_rect()
@@ -214,3 +237,5 @@ class Player(pygame.sprite.Sprite):
             return True
         else:
             return False
+        
+        return False

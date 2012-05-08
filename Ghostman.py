@@ -40,6 +40,7 @@ class Ghostman(Player):
 
 
                 self.rect = self.animationmotiondict[motion][0][0].get_rect()
+                self.collision_rect = pygame.Rect(self.rect.left,self.rect.top + 76,62,10)
                 self.image = self.animationmotiondict[motion][0][0]
 
         except:
@@ -130,19 +131,12 @@ class Ghostman(Player):
         #apply max speed
         direction *= self.maxvelocity
         self.velocity = direction
-        
+       
         # updates position with direction
         self.position += (direction * time)
 
         self.rect.topleft = (round(self.position[0]), round(self.position[1]))
-
-        '''
-        if sqrt(vdot(self.velocity,self.velocity)) > self.maxvelocitymagnitude:
-            # normalize velocity vector
-            self.velocity = array([velocity[0] / sqrt(vdot(self.velocity,self.velocity)),velocity[1] / sqrt(vdot(self.velocity,self.velocity))])
-            #multiply by max acceleration
-            self.velocity *= self.maxvelocity
-        '''
+        self.collision_rect.topleft = (round(self.position[0]), round(self.position[1]))
         
     def eat_mouse(self,mouse, time):
        
