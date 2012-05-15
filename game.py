@@ -7,7 +7,6 @@ from Player import Player
 from Mouse import Mouse
 from Chair import *
 from numpy import *
-from PixelPerfect import *
 from TitleScreen import *
 import Sandbox
 from Scoreboard import Scoreboard
@@ -232,9 +231,9 @@ class Game(object):
                         ghost.collide = True    
             
             # player to ghost
-            #gtop = pygame.sprite.spritecollide(self.player, self.ghost_group, False, pygame.sprite.collide_rect)
-            gtop = collision_check(self.player,c)
-            if gtop:
+            gtop = pygame.sprite.spritecollide(self.player, self.ghost_group, False, pygame.sprite.collide_rect)
+            #gtop = collision_check(self.player,c)
+            if len(gtop):
                 running = False 
             
                 
@@ -268,7 +267,7 @@ class Game(object):
         surface2 = self.message2.render("Press 'E' to play again, or escape to quit", True, (0,0,0))
         
         self.window.blit(surface1,(445,50))
-        self.window.blit(surface3,(150,120))
+        self.window.blit(surface3,(325,120))
         self.window.blit(surface2,(310,150))
         
         pygame.display.flip()
@@ -419,12 +418,7 @@ def collision_check(moving, stationary):
             top = True
         if moving.collision_rect.bottom >= top_y_bound and moving.collision_rect.bottom <= bottom_y_bound:
             bottom = True
-        print "Left: %s" % left
-        print "Top: %s" %top
-        print "Bottom: %s" %bottom
-        print "Right: %s" %right
-        
-        
+       
         if top and (left or right):
             return True
         elif bottom and (left or right):

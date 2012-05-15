@@ -1,7 +1,6 @@
 import pygame
 from pygame.locals import *
 from Chair import Chair
-from PixelPerfect import *
 import game
 
 import math
