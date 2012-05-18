@@ -263,11 +263,11 @@ class Game(object):
         
         
         surface1 = self.message1.render("Game Over", True, (0,0,0))
-        surface3 = self.message3.render("Your Score: You survived with %d points"%(self.score_board.mouse_dead_counter), True,(0,0,0))
+        surface3 = self.message3.render("Your Score: You survived with %d points for %d minute(s) %d second(s)"%(self.score_board.mouse_dead_counter,self.score_board.minutes,self.score_board.seconds), True,(0,0,0))
         surface2 = self.message2.render("Press 'E' to play again, or escape to quit", True, (0,0,0))
         
         self.window.blit(surface1,(445,50))
-        self.window.blit(surface3,(325,120))
+        self.window.blit(surface3,(150,120))
         self.window.blit(surface2,(310,150))
         
         pygame.display.flip()
