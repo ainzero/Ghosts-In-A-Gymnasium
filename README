@@ -1,3 +1,8 @@
+3/17/2017 - This is a silly game I wrote using pygame back when I first started programming. I've been thinking
+about actually making the code architecture "reasonable", as well as numerous other improvements to it. Stick around for changes
+in the future. -Anthony
+
+
 Ghosts in A Gymnasium
 
 Gameplay: Before the game starts, the player has the opportunity to move 
